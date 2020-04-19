@@ -1,0 +1,1 @@
+web: gunocorn main.app
