@@ -18,30 +18,27 @@ class NoDaemonProcess(multiprocessing.Process):
 class MyPool(multiprocessing.pool.Pool):
     Process = NoDaemonProcess
 
+# Main class
 class GetTagPosition:
 	def  __init__(self, url):
 		self.url = url 
-		with open("templates/file.csv", "w"):
+		
+		with open("file.csv", "w"):
 			pass
 		self.tags, self.shop_name = self.getTags()
 		if self.tags:
 			p = MyPool(8)  # Pool tells how many at a time
 			records = p.map(self.seachPage, self.tags)
-			# p2.terminate()
-			# p2.close()
-			# p2.join()
-				# for tag in self.tags:
-			# 	page_tag = self.seachPage(tag, self.shop_name)
-			# 	# makeTable(page_tag)
-
-
+			
 	def getTags(self):
+		# return list of searching tags and shop name
 		html = requests.get(self.url)
 		if html.status_code == 200:  
 			soup = BeautifulSoup(html.text, "lxml")
 			try:
 				find_tags = soup.find("div", id="wt-content-toggle-tags-read-more").find_all("a")
-				shop_name = soup.find("p", class_="wt-text-body-01").text.strip()
+				shop_name = soup.find("div", class_="wt-mb-xs-1").text.strip()
+				shop_name = shop_name.split()[0].strip()
 				tags = [tag.text.strip() for tag in find_tags]
 			except:
 				tags = []
@@ -82,13 +79,13 @@ class GetTagPosition:
 						for item in range(len(items)):
 							shop = items[item].find("div", class_="v2-listing-card__shop").text.split()[0].strip()
 							if shop == self.shop_name:
-								title = items[item].find("h2", class_="text-gray").text.strip()
+								title = items[item].find("h3", class_="text-gray").text.strip()
 								position = item + 1
 								table_dct["title"] = title 
 								table_dct["tag"] = tag 
 								table_dct["position"] = position + (page-1) * 48
 								table_dct["page"] = page 
-								table_dct["total_page"] = total_page						
+								table_dct["total_page"] = total_page
 								self.makeTable(table_dct)
 								flag = True 
 								break
@@ -97,17 +94,18 @@ class GetTagPosition:
 				else:
 					continue
 			if page == 30:
+				# if items not on 30 pages
 				table_dct["title"] = None 
 				table_dct["tag"] = tag 
 				table_dct["position"] = "> 1140"
 				table_dct["page"] = "> 30" 
-				table_dct["total_page"]= total_page						
+				table_dct["total_page"]= total_page	
 				self.makeTable(table_dct)	
 
-
+	# create csv file
 	def makeTable(self, dct):
 		print('saving....')
-		name = "templates/file.csv"
+		name = "file.csv" 
 		with open(name, 'a') as f:
 				writer = csv.writer(f)
 				writer.writerow((dct['tag'],
@@ -119,13 +117,5 @@ class GetTagPosition:
 
 
 if __name__ == "__main__":
-	# with open("file.csv", "w"):
-	# 	pass
-	# exemple = "https://www.etsy.com/listing/235063654"
-	# input_url = input("Excemple:\t{}\nInput your listnig here: ".format(exemple))
-	# tags,shop_name = getTags(input_url)
-	# if tags:
-	# 	for tag in tags:
-	# 		page_tag = seachPage(tag, shop_name)
-	# 		# makeTable(page_tag)
-	GetTagPosition("https://www.etsy.com/listing/293350427")
+	# run program
+	GetTagPosition("https://www.etsy.com/listing/816119187/macrame-wall-hanging-boho-style-modern?ref=shop_home_active_1&frs=1")
