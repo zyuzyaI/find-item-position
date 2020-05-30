@@ -16,3 +16,6 @@ soupsieve==2.0
 urllib3==1.25.9
 webencodings==0.5.1
 Werkzeug==1.0.1
+PyQt5==5.14.2
+PyQt5-sip==12.7.2
+pandas==1.0.4
